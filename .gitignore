@@ -1,0 +1,35 @@
+# IntelliJ
+.idea/
+out/
+
+# Cursive Clojure plugin
+.idea/replstate.xml
+
+# Editor-based Rest Client
+.idea/httpRequests
+
+### Java ###
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+*.zip
+*.tar.gz
+
+### Gradle ###
+gradle/
+.gradle
+/build/
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+gradlew*
+
+# Cache of project
+.gradletasknamecache
+
+### Gradle Patch ###
+**/build/
