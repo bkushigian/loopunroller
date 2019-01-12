@@ -31,6 +31,14 @@ public class UnrollVisitor extends VoidVisitorAdapter<Void> {
   @Override
   public void visit(WhileStmt n, Void arg) {
     super.visit(n, arg);
+    final Statement body = n.getBody();
+    final Node parent = n.getParentNode().orElseThrow(() -> new RuntimeException("No parent node"));
+    final Expression cond = n.getCondition();
+    final BlockStmt replacementBlock = new BlockStmt();
+    final BlockStmt block = body.isBlockStmt() ? (BlockStmt) body
+                                               : (new BlockStmt()).addStatement(body);
+    replacementBlock.addStatement(unroll(cond, block, getReturnStmt(-1), depth));
+    parent.replace(n, replacementBlock);
   }
 
   @Override
@@ -43,25 +51,22 @@ public class UnrollVisitor extends VoidVisitorAdapter<Void> {
     super.visit(n, arg);
     final Statement body = n.getBody();
     final Node parent = n.getParentNode().orElseThrow(() -> new RuntimeException("No parent node"));
-    final List<Statement> toAdd = new LinkedList<>();
     final Expression cond = n.getCompare().orElse(new BooleanLiteralExpr(true));
     final BlockStmt replacementBlock = new BlockStmt();
 
     for (Expression expr : n.getInitialization()) {
       replacementBlock.addStatement(new ExpressionStmt(expr));
     }
-
     final BlockStmt block = body.isBlockStmt() ? (BlockStmt) body
                                                : (new BlockStmt()).addStatement(body);
     for (Expression expr : n.getUpdate()) {
       block.addStatement(expr);
     }
-
     replacementBlock.addStatement(unroll(cond, block, getReturnStmt(-1), depth));
     parent.replace(n, replacementBlock);
   }
 
-  private ThrowStmt getThrowStmt(String type, String msg) {
+  private ThrowStmt getThrowStmt(final String type, final String msg) {
     final ThrowStmt throwStmt = new ThrowStmt();
     final ObjectCreationExpr exception = new ObjectCreationExpr();
     exception.setType(type);
@@ -72,21 +77,25 @@ public class UnrollVisitor extends VoidVisitorAdapter<Void> {
     return throwStmt;
   }
 
-  private ReturnStmt getReturnStmt(Integer lit) {
+  private ReturnStmt getReturnStmt(final Integer lit) {
     return (new ReturnStmt()).setExpression(new IntegerLiteralExpr(lit));
   }
 
-  private ReturnStmt getReturnStmt(Boolean lit) {
+  private ReturnStmt getReturnStmt(final Boolean lit) {
     return (new ReturnStmt()).setExpression(new BooleanLiteralExpr(lit));
   }
 
-  private Statement unroll(Expression cond, Statement then, Statement bot, int depth) {
+  private Statement unroll(final Expression cond,
+      final Statement then,
+      final Statement bot,
+      final int depth)
+  {
     final IfStmt ifStmt = new IfStmt();
     ifStmt.setCondition(cond);
     if (depth <= 0) {
       ifStmt.setThenStmt(bot);
     } else {
-      BlockStmt block = new BlockStmt();
+      final BlockStmt block = new BlockStmt();
       block.addStatement(then);
       block.addStatement(unroll(cond, then, bot, depth - 1));
       ifStmt.setThenStmt(block);
