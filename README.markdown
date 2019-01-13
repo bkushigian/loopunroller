@@ -1,5 +1,5 @@
 # Loop Unroller
-This is a toy project using [JavaParser][http://javaparser.org/] to create a
+This is a toy project using [JavaParser](http://javaparser.org/) to create a
 simple loop unroller. Currenlty only for loops and while loops are supported (so
 no for-each loops), and `break`s and `continue`s aren't handled either.
 
